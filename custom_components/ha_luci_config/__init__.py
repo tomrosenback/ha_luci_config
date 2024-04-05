@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import glob
+import string
 from datetime import timedelta
 
 from openwrt_luci_rpc.openwrt_luci_rpc import OpenWrtLuciRPC # pylint: disable=import-error
@@ -20,6 +21,7 @@ from homeassistant.const import ( # pylint: disable=import-error
     CONF_USERNAME,
     CONF_VERIFY_SSL,
     CONF_SCAN_INTERVAL,
+    CONF_RULE_IDS
 )
 import homeassistant.helpers.config_validation as cv # pylint: disable=import-error
 
@@ -70,69 +72,70 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     hass.data[DOMAIN][config.get(CONF_HOST)] = _rpc
 
-    uci_files = glob.glob(config_glob)
-    _LOGGER.debug("Luci: %d uci files", len(uci_files))
+    # uci_files = glob.glob(config_glob)
+    # _LOGGER.debug("Luci: %d uci files", len(uci_files))
     
-    for sw_file in uci_files:
-        _LOGGER.debug("Luci: uci %s", sw_file)
-        with open(sw_file) as uci:
-            sw_values = dict()
-            sw_test_key = ""
-            for line in uci:
-                kv = line.split("=")
-                if len(kv) != 2:
-                    _LOGGER.error("LuciConfig: file: %s - invalid line: %s", sw_file, line)
-                    continue
-                # _LOGGER.debug("LuciConfig: key: %s; val: %s", kv[0], kv[1])    
+    # for sw_file in uci_files:
+    #     _LOGGER.debug("Luci: uci %s", sw_file)
+    #     with open(sw_file) as uci:
+    #         sw_values = dict()
+    #         sw_test_key = ""
+    #         for line in uci:
+    #             kv = line.split("=")
+    #             if len(kv) != 2:
+    #                 _LOGGER.error("LuciConfig: file: %s - invalid line: %s", sw_file, line)
+    #                 continue
+    #             # _LOGGER.debug("LuciConfig: key: %s; val: %s", kv[0], kv[1])    
 
-                if kv[0] == "#sw_name":
-                    sw_name = kv[1].strip()
-                elif kv[0] == "#sw_desc":
-                    sw_desc = kv[1].strip()
-                elif kv[0] == "#sw_test":
-                    sw_test_key = kv[1].strip()
-                else:
-                    sw_values[kv[0]] = kv[1].strip().replace("'", "")
+    #             if kv[0] == "#sw_name":
+    #                 sw_name = kv[1].strip()
+    #             elif kv[0] == "#sw_desc":
+    #                 sw_desc = kv[1].strip()
+    #             elif kv[0] == "#sw_test":
+    #                 sw_test_key = kv[1].strip()
+    #             else:
+    #                 sw_values[kv[0]] = kv[1].strip().replace("'", "")
 
-        _LOGGER.debug("LuciConfig: name: %s; desc: %s; test: %s;", sw_name, sw_desc, sw_test_key)
-        if sw_name and sw_desc and sw_test_key:
-            if sw_name in _rpc.cfg:
-                pass
-            else:
-                _rpc.cfg[sw_name] = LuciConfig(sw_name, sw_desc, sw_test_key, sw_values, sw_file)
+    #     _LOGGER.debug("LuciConfig: name: %s; desc: %s; test: %s;", sw_name, sw_desc, sw_test_key)
+    #     if sw_name and sw_desc and sw_test_key:
+    #         if sw_name in _rpc.cfg:
+    #             pass
+    #         else:
+    #             _rpc.cfg[sw_name] = LuciConfig(sw_name, sw_desc, sw_test_key, sw_values, sw_file)
 
 
-    openvpn_result = await hass.async_add_executor_job(_rpc.rpc_call, 'get_all', 'openvpn')
-    for vpn_entry in openvpn_result:
-        _LOGGER.debug("Luci: vpn %s", vpn_entry)
-        if openvpn_result[vpn_entry][".name"] in _rpc.vpn:
-            vpn = _rpc.vpn[openvpn_result[vpn_entry][".name"]]
-        else:
-            _LOGGER.info("Luci: vpn %s found", vpn_entry)
-            vpn =_rpc.vpn[openvpn_result[vpn_entry][".name"]] = LuciConfigItem()
+    # openvpn_result = await hass.async_add_executor_job(_rpc.rpc_call, 'get_all', 'openvpn')
+    # for vpn_entry in openvpn_result:
+    #     _LOGGER.debug("Luci: vpn %s", vpn_entry)
+    #     if openvpn_result[vpn_entry][".name"] in _rpc.vpn:
+    #         vpn = _rpc.vpn[openvpn_result[vpn_entry][".name"]]
+    #     else:
+    #         _LOGGER.info("Luci: vpn %s found", vpn_entry)
+    #         vpn =_rpc.vpn[openvpn_result[vpn_entry][".name"]] = LuciConfigItem()
 
-        vpn.id = openvpn_result[vpn_entry][".name"]
-        vpn.name = openvpn_result[vpn_entry]["name"] if "name" in openvpn_result[vpn_entry] else openvpn_result[vpn_entry][".name"]
-        if "enabled" not in openvpn_result[vpn_entry]:
-            vpn.enabled = False
-        else:
-            vpn.enabled = openvpn_result[vpn_entry]["enabled"] == "1"
+    #     vpn.id = openvpn_result[vpn_entry][".name"]
+    #     vpn.name = openvpn_result[vpn_entry]["name"] if "name" in openvpn_result[vpn_entry] else openvpn_result[vpn_entry][".name"]
+    #     if "enabled" not in openvpn_result[vpn_entry]:
+    #         vpn.enabled = False
+    #     else:
+    #         vpn.enabled = openvpn_result[vpn_entry]["enabled"] == "1"
 
     firewall_result = await hass.async_add_executor_job(_rpc.rpc_call, 'get_all', 'firewall')
     for rule_entry in firewall_result:
         _LOGGER.debug("Luci: rule %s: %s", rule_entry, firewall_result[rule_entry])
-        if firewall_result[rule_entry][".name"] in _rpc.rule:
-            rule = _rpc.rule[firewall_result[rule_entry][".name"]]
-        else:
-            _LOGGER.info("Luci: rule %s found", rule_entry)
-            rule =_rpc.rule[firewall_result[rule_entry][".name"]] = LuciConfigItem()
+        if config.get(CONF_RULE_IDS) == "" or firewall_result[rule_entry][".name"] in string.split(config.get(CONF_RULE_IDS)):
+            if firewall_result[rule_entry][".name"] in _rpc.rule:
+                rule = _rpc.rule[firewall_result[rule_entry][".name"]]
+            else:
+                _LOGGER.info("Luci: rule %s found", rule_entry)
+                rule =_rpc.rule[firewall_result[rule_entry][".name"]] = LuciConfigItem()
 
-        rule.id = firewall_result[rule_entry][".name"]
-        rule.name = firewall_result[rule_entry]["name"] if "name" in firewall_result[rule_entry] else firewall_result[rule_entry][".name"]
-        if "enabled" not in firewall_result[rule_entry]:
-            rule.enabled = True
-        else:
-            rule.enabled = firewall_result[rule_entry]["enabled"] == "1"
+            rule.id = firewall_result[rule_entry][".name"]
+            rule.name = firewall_result[rule_entry]["name"] if "name" in firewall_result[rule_entry] else firewall_result[rule_entry][".name"]
+            if "enabled" not in firewall_result[rule_entry]:
+                rule.enabled = True
+            else:
+                rule.enabled = firewall_result[rule_entry]["enabled"] == "1"
 
     for component in PLATFORMS:
         hass.async_create_task(
@@ -218,7 +221,7 @@ class LuciRPC():
             config.get(CONF_USERNAME),
             config.get(CONF_PASSWORD),
             config.get(CONF_SSL),
-            config.get(CONF_VERIFY_SSL),
+            config.get(CONF_VERIFY_SSL)
         )
         self.host = config.get(CONF_HOST)
         self.success_init = self._rpc.token is not None

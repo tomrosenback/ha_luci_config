@@ -16,6 +16,7 @@ from homeassistant.const import ( # pylint: disable=import-error
     CONF_USERNAME,
     CONF_VERIFY_SSL,
     CONF_SCAN_INTERVAL,
+    CONF_RULE_IDS
 )
 
 from .const import (
@@ -66,6 +67,7 @@ class LuciConfigFlowHandler(config_entries.ConfigFlow):
         self._ssl = DEFAULT_SSL
         self._verify_ssl = DEFAULT_VERIFY_SSL
         self._update_interval = DEFAULT_UPDATE_INTERVAL
+        self._rule_ids = ""
 
     async def async_step_import(self, user_input=None):
         """Handle configuration by yaml file."""
@@ -84,6 +86,7 @@ class LuciConfigFlowHandler(config_entries.ConfigFlow):
             vol.Optional(CONF_SSL, default=DEFAULT_SSL): bool,
             vol.Optional(CONF_VERIFY_SSL, default=DEFAULT_VERIFY_SSL): bool,
             vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_UPDATE_INTERVAL): int,
+            vol.Required(CONF_RULE_IDS): str,
         }
 
         if user_input is not None:
@@ -93,6 +96,7 @@ class LuciConfigFlowHandler(config_entries.ConfigFlow):
             self._ssl = user_input[CONF_SSL]
             self._verify_ssl = user_input[CONF_VERIFY_SSL]
             self._update_interval = user_input[CONF_SCAN_INTERVAL]
+            self._rule_ids = user_input[CONF_RULE_IDS]
 
             try:
                 await asyncio.wait_for(
@@ -112,6 +116,7 @@ class LuciConfigFlowHandler(config_entries.ConfigFlow):
                         CONF_SSL: self._ssl,
                         CONF_VERIFY_SSL: self._verify_ssl,
                         CONF_SCAN_INTERVAL: self._update_interval
+                        CONF_RULE_IDS: self._rule_ids
                     },
                 )
 
@@ -146,6 +151,7 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
         self._ssl = config_entry.data[CONF_SSL] if CONF_SSL in config_entry.data else DEFAULT_SSL
         self._verify_ssl = config_entry.data[CONF_VERIFY_SSL] if CONF_VERIFY_SSL in config_entry.options else DEFAULT_VERIFY_SSL
         self._update_interval = config_entry.data[CONF_SCAN_INTERVAL] if CONF_SCAN_INTERVAL in config_entry.options else DEFAULT_UPDATE_INTERVAL
+        self._rule_ids = config_entry.data[CONF_RULE_IDS] if CONF_RULE_IDS in config_entry.options else ""
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -161,6 +167,7 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
             self._ssl = user_input[CONF_SSL]
             self._verify_ssl = user_input[CONF_VERIFY_SSL]
             self._update_interval = user_input[CONF_SCAN_INTERVAL]
+            self._rule_ids = user_input[CONF_RULE_IDS]
 
         data_schema = {
             vol.Required(CONF_HOST, default=self._host): str,
@@ -169,6 +176,7 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Optional(CONF_SSL, default=self._ssl): bool,
             vol.Optional(CONF_VERIFY_SSL, default=self._verify_ssl): bool,
             vol.Optional(CONF_SCAN_INTERVAL, default=self._update_interval): int,
+            vol.Optional(CONF_RULE_IDS, default=self._rule_ids): str,
         }
 
         if user_input is not None:
@@ -186,7 +194,8 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_PASSWORD: self._password,
                         CONF_SSL: self._ssl,
                         CONF_VERIFY_SSL: self._verify_ssl,
-                        CONF_SCAN_INTERVAL: self._update_interval
+                        CONF_SCAN_INTERVAL: self._update_interval,
+                        CONF_RULE_IDS: self._rule_ids
                     },
                 )
 

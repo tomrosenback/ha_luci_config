@@ -28,17 +28,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities= []
     rpc = hass.data[DOMAIN][config_entry.data.get(CONF_HOST)]
 
-    if 'cfg' in rpc:
-        for key in rpc.cfg:
-            entities.append(LuciConfigSwitch(rpc, key))
+    # if 'cfg' in rpc:
+    #     for key in rpc.cfg:
+    #         entities.append(LuciConfigSwitch(rpc, key))
 
-    if 'vpn' in rpc:       
-        for key in rpc.vpn:
-            entities.append(LuciVPNSwitch(rpc, key))
+    # if 'vpn' in rpc:       
+    #     for key in rpc.vpn:
+    #         entities.append(LuciVPNSwitch(rpc, key))
 
-    if 'rule' in rpc:
-        for key in rpc.rule:
-            entities.append(LuciRuleSwitch(rpc, key))
+    for key in rpc.rule:
+        entities.append(LuciRuleSwitch(rpc, key))
     
     async_add_entities(entities, True)
 
