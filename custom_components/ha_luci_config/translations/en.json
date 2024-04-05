@@ -17,7 +17,8 @@
                     "password": "Password",
                     "ssl": "Enable SSL",
                     "verify_ssl": "Verify SSL host",
-                    "scan_interval": "Scan interval (minutes)"
+                    "scan_interval": "Scan interval (minutes)",
+                    "rule_ids": "Firewall rules to use, separate by space"
                 },
                 "description": "Configure the connection details.",
                 "title": "Luci Config"
@@ -42,7 +43,8 @@
                     "password": "Password",
                     "ssl": "Enable SSL",
                     "verify_ssl": "Verify SSL host",
-                    "scan_interval": "Scan interval"
+                    "scan_interval": "Scan interval",
+                    "rule_ids": "Firewall rules to use, separate by space"
                 },
                 "description": "Configure the connection details.",
                 "title": "Luci Config"

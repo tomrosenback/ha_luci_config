@@ -15,8 +15,7 @@ from homeassistant.const import ( # pylint: disable=import-error
     CONF_SSL,
     CONF_USERNAME,
     CONF_VERIFY_SSL,
-    CONF_SCAN_INTERVAL,
-    CONF_RULE_IDS
+    CONF_SCAN_INTERVAL
 )
 
 from .const import (
@@ -25,6 +24,7 @@ from .const import (
     DEFAULT_VERIFY_SSL,
     DEFAULT_UPDATE_INTERVAL,
     CONN_TIMEOUT,
+    CONF_RULE_IDS
 )
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class LuciConfigFlowHandler(config_entries.ConfigFlow):
             vol.Optional(CONF_SSL, default=DEFAULT_SSL): bool,
             vol.Optional(CONF_VERIFY_SSL, default=DEFAULT_VERIFY_SSL): bool,
             vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_UPDATE_INTERVAL): int,
-            vol.Required(CONF_RULE_IDS): str,
+            vol.Optional(CONF_RULE_IDS): str
         }
 
         if user_input is not None:
@@ -96,7 +96,7 @@ class LuciConfigFlowHandler(config_entries.ConfigFlow):
             self._ssl = user_input[CONF_SSL]
             self._verify_ssl = user_input[CONF_VERIFY_SSL]
             self._update_interval = user_input[CONF_SCAN_INTERVAL]
-            self._rule_ids = user_input[CONF_RULE_IDS]
+            self._rule_ids = str(user_input[CONF_RULE_IDS])
 
             try:
                 await asyncio.wait_for(
@@ -115,7 +115,7 @@ class LuciConfigFlowHandler(config_entries.ConfigFlow):
                         CONF_PASSWORD: self._password,
                         CONF_SSL: self._ssl,
                         CONF_VERIFY_SSL: self._verify_ssl,
-                        CONF_SCAN_INTERVAL: self._update_interval
+                        CONF_SCAN_INTERVAL: self._update_interval,
                         CONF_RULE_IDS: self._rule_ids
                     },
                 )
@@ -176,7 +176,7 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Optional(CONF_SSL, default=self._ssl): bool,
             vol.Optional(CONF_VERIFY_SSL, default=self._verify_ssl): bool,
             vol.Optional(CONF_SCAN_INTERVAL, default=self._update_interval): int,
-            vol.Optional(CONF_RULE_IDS, default=self._rule_ids): str,
+            vol.Optional(CONF_RULE_IDS, default=self._rule_ids): str
         }
 
         if user_input is not None:

@@ -12,7 +12,8 @@
                     "password": "[%key:common::config_flow::data::password%]",
                     "ssl": "[%key:common::config_flow::data::ssl%]",
                     "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]",
-                    "scan_interval": "[%key:common::config_flow::data::scan_interval%]"
+                    "scan_interval": "[%key:common::config_flow::data::scan_interval%]",
+                    "rule_ids": "[%key:common::config_flow::data::rule_ids%]"
                 }
             }
         },
@@ -37,7 +38,8 @@
                     "password": "[%key:common::config_flow::data::password%]",
                     "ssl": "[%key:common::config_flow::data::ssl%]",
                     "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]",
-                    "scan_interval": "[%key:common::config_flow::data::scan_interval%]"
+                    "scan_interval": "[%key:common::config_flow::data::scan_interval%]",
+                    "rule_ids": "[%key:common::config_flow::data::rule_ids%]"
                 }
             }
         },

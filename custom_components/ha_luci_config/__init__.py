@@ -20,8 +20,7 @@ from homeassistant.const import ( # pylint: disable=import-error
     CONF_SSL,
     CONF_USERNAME,
     CONF_VERIFY_SSL,
-    CONF_SCAN_INTERVAL,
-    CONF_RULE_IDS
+    CONF_SCAN_INTERVAL
 )
 import homeassistant.helpers.config_validation as cv # pylint: disable=import-error
 
@@ -32,6 +31,7 @@ from homeassistant.helpers.dispatcher import ( # pylint: disable=import-error
 from .const import (
     DOMAIN,
     SIGNAL_STATE_UPDATED,
+    CONF_RULE_IDS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     firewall_result = await hass.async_add_executor_job(_rpc.rpc_call, 'get_all', 'firewall')
     for rule_entry in firewall_result:
         _LOGGER.debug("Luci: rule %s: %s", rule_entry, firewall_result[rule_entry])
-        if config.get(CONF_RULE_IDS) == "" or firewall_result[rule_entry][".name"] in string.split(config.get(CONF_RULE_IDS)):
+        if config.get(CONF_RULE_IDS) == "" or firewall_result[rule_entry][".name"] in str(config.get(CONF_RULE_IDS)).split():
             if firewall_result[rule_entry][".name"] in _rpc.rule:
                 rule = _rpc.rule[firewall_result[rule_entry][".name"]]
             else:

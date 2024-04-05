@@ -13,3 +13,5 @@ DEFAULT_SSL = False
 DEFAULT_VERIFY_SSL = True
 
 CONN_TIMEOUT = 5.0
+
+CONF_RULE_IDS = "rule_ids"
