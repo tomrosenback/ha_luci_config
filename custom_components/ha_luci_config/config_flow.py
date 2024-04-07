@@ -151,7 +151,7 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
         self._ssl = config_entry.data[CONF_SSL] if CONF_SSL in config_entry.data else DEFAULT_SSL
         self._verify_ssl = config_entry.data[CONF_VERIFY_SSL] if CONF_VERIFY_SSL in config_entry.options else DEFAULT_VERIFY_SSL
         self._update_interval = config_entry.data[CONF_SCAN_INTERVAL] if CONF_SCAN_INTERVAL in config_entry.options else DEFAULT_UPDATE_INTERVAL
-        self._rule_ids = config_entry.data[CONF_RULE_IDS] if CONF_RULE_IDS in config_entry.options else ""
+        self._rule_ids = config_entry.options.get(CONF_RULE_IDS)
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
