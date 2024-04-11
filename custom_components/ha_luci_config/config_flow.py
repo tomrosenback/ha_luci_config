@@ -144,19 +144,13 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry):
         """Init LuciConfigOptionsFlowHandler."""
+        self._config_entry = config_entry
         self._errors = {}
-        self._host = config_entry.data[CONF_HOST] if CONF_HOST in config_entry.data else None
-        self._username = config_entry.data[CONF_USERNAME] if CONF_USERNAME in config_entry.data else None
-        self._password = config_entry.data[CONF_PASSWORD] if CONF_PASSWORD in config_entry.data else None
-        self._ssl = config_entry.data[CONF_SSL] if CONF_SSL in config_entry.data else DEFAULT_SSL
-        self._verify_ssl = config_entry.data[CONF_VERIFY_SSL] if CONF_VERIFY_SSL in config_entry.options else DEFAULT_VERIFY_SSL
-        self._update_interval = config_entry.data[CONF_SCAN_INTERVAL] if CONF_SCAN_INTERVAL in config_entry.options else DEFAULT_UPDATE_INTERVAL
-        self._rule_ids = config_entry.data[CONF_RULE_IDS] if CONF_RULE_IDS in config_entry.options else ""
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
-        return await self.async_step_user()
-
+        return await self.async_step_user(user_input=user_input)
+    
     async def async_step_user(self, user_input=None):
         self._errors = {}
 
@@ -168,35 +162,25 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
             self._verify_ssl = user_input[CONF_VERIFY_SSL]
             self._update_interval = user_input[CONF_SCAN_INTERVAL]
             self._rule_ids = user_input[CONF_RULE_IDS]
-
-        data_schema = {
-            vol.Required(CONF_HOST, default=self._host): str,
-            vol.Required(CONF_USERNAME, default=self._username): str,
-            vol.Required(CONF_PASSWORD, default=self._password): str,
-            vol.Optional(CONF_SSL, default=self._ssl): bool,
-            vol.Optional(CONF_VERIFY_SSL, default=self._verify_ssl): bool,
-            vol.Optional(CONF_SCAN_INTERVAL, default=self._update_interval): int,
-            vol.Optional(CONF_RULE_IDS, default=self._rule_ids): str
-        }
-
+       
         if user_input is not None:
+            data = dict(self._config_entry.data)
             try:
                 await asyncio.wait_for(
                     self.hass.async_add_executor_job(_try_connect, self._host, self._username, self._password, self._ssl, self._verify_ssl),
                     timeout=CONN_TIMEOUT,
                 )
 
+                # Update data
+                data.update(user_input)
+                self.hass.config_entries.async_update_entry(
+                    self._config_entry, data=data
+                )
+
+                # Update options
                 return self.async_create_entry(
-                    title=DOMAIN,
-                    data={
-                        CONF_HOST: self._host,
-                        CONF_USERNAME: self._username,
-                        CONF_PASSWORD: self._password,
-                        CONF_SSL: self._ssl,
-                        CONF_VERIFY_SSL: self._verify_ssl,
-                        CONF_SCAN_INTERVAL: self._update_interval,
-                        CONF_RULE_IDS: self._rule_ids
-                    },
+                    title="",
+                    data={}
                 )
 
             except (asyncio.TimeoutError, CannotConnect):
@@ -204,6 +188,16 @@ class LuciConfigOptionsFlowHandler(config_entries.OptionsFlow):
                 result = RESULT_CONN_ERROR
 
             self._errors["base"] = result
+
+        data_schema = {
+            vol.Required(CONF_HOST, default=self._config_entry.data.get(CONF_HOST, "")): str,
+            vol.Required(CONF_USERNAME, default=self._config_entry.data.get(CONF_USERNAME, "")): str,
+            vol.Required(CONF_PASSWORD, default=self._config_entry.data.get(CONF_PASSWORD, "")): str,
+            vol.Optional(CONF_SSL, default=self._config_entry.data.get(CONF_SSL, DEFAULT_SSL)): bool,
+            vol.Optional(CONF_VERIFY_SSL, default=self._config_entry.data.get(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL)): bool,
+            vol.Optional(CONF_SCAN_INTERVAL, default=self._config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_UPDATE_INTERVAL)): int,
+            vol.Optional(CONF_RULE_IDS, default=self._config_entry.data.get(CONF_RULE_IDS, "")): str,
+        }
 
         return self.async_show_form(
             step_id="user",
